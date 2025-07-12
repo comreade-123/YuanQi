@@ -841,3 +841,34 @@ header {
     font-size: 0.95rem;
     color: var(--text);
 }
+/* 访问量计数器 */
+.visit-counter {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+    background: rgba(0, 188, 212, 0.2);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: 500;
+    color: var(--accent);
+    transition: all 0.3s ease;
+}
+
+.visit-counter i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+.visit-counter:hover {
+    background: rgba(0, 188, 212, 0.3);
+    transform: scale(1.05);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .visit-counter {
+        margin-right: 10px;
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+}
