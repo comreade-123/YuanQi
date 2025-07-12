@@ -746,9 +746,9 @@
 			</div>
             
            <div class="copyright">
-                       <p>&copy; 2025 元启天星工作室 版权所有 | 备案号</p>
-                       <p>今日访问: <span id="footerDailyVisits">0</span> | 总访问: <span id="totalVisits">0</span></p>
-                   </div>
+               <p>&copy; 2025 元启天星工作室 版权所有 | 备案号</p>
+               <p>今日访问: <span id="footerDailyVisits">0</span> | 总访问: <span id="totalVisits">0</span></p>
+           </div>
                </div>
     </footer>
     
@@ -828,60 +828,91 @@
             window.scrollTo(0, 0);
         });
 		
-		// 每日访问量计数器 - 新增代码
-		    function updateVisitCounter() {
+		// 访问量计数器
+		async function updateVisitCounter() {
+		    // 使用 CountAPI 服务
+		    const namespace = "yuanqi-tianxing"; // 替换为您自己的命名空间
+		    const key = "website-visits"; // 统计键名
+		    
+		    try {
 		        // 获取当前日期（格式：YYYY-MM-DD）
 		        const today = new Date().toISOString().split('T')[0];
+		        const dailyKey = `daily-${today}`;
 		        
-		        // 从localStorage获取访问数据
-		        const visitData = JSON.parse(localStorage.getItem('visitData')) || {
-		            lastVisitDate: null,
-		            dailyCount: 0,
-		            totalCount: 0
-		        };
+		        // 获取总访问量
+		        const totalResponse = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
+		        const totalData = await totalResponse.json();
 		        
-		        // 如果是新的一天，重置每日计数
-		        if (visitData.lastVisitDate !== today) {
-		            visitData.lastVisitDate = today;
-		            visitData.dailyCount = 0;
-		        }
-		        
-		        // 增加计数
-		        visitData.dailyCount++;
-		        visitData.totalCount++;
-		        
-		        // 保存更新后的数据
-		        localStorage.setItem('visitData', JSON.stringify(visitData));
+		        // 获取今日访问量
+		        const dailyResponse = await fetch(`https://api.countapi.xyz/hit/${namespace}/${dailyKey}`);
+		        const dailyData = await dailyResponse.json();
 		        
 		        // 更新显示
-		        const dailyElement = document.getElementById('dailyVisits');
-		        const footerDailyElement = document.getElementById('footerDailyVisits');
-		        const totalElement = document.getElementById('totalVisits');
-		        
-		        dailyElement.textContent = visitData.dailyCount;
-		        footerDailyElement.textContent = visitData.dailyCount;
-		        totalElement.textContent = visitData.totalCount;
+		        document.getElementById('dailyVisits').textContent = dailyData.value;
+		        document.getElementById('footerDailyVisits').textContent = dailyData.value;
+		        document.getElementById('totalVisits').textContent = totalData.value;
 		        
 		        // 添加动画效果
-		        animateCounter(dailyElement);
-		        animateCounter(totalElement);
+		        animateCounter(document.getElementById('dailyVisits'));
+		        animateCounter(document.getElementById('totalVisits'));
 		        
-		        // 在控制台显示完整统计数据（可选）
-		        console.log(`今日访问量: ${visitData.dailyCount}, 总访问量: ${visitData.totalCount}`);
+		    } catch (error) {
+		        console.error('访问量统计出错:', error);
+		        // 回退到本地存储方案
+		        fallbackVisitCounter();
+		    }
+		}
+		
+		// 本地存储回退方案
+		function fallbackVisitCounter() {
+		    // 获取当前日期（格式：YYYY-MM-DD）
+		    const today = new Date().toISOString().split('T')[0];
+		    
+		    // 从localStorage获取访问数据
+		    const visitData = JSON.parse(localStorage.getItem('visitData')) || {
+		        lastVisitDate: null,
+		        dailyCount: 0,
+		        totalCount: 0
+		    };
+		    
+		    // 如果是新的一天，重置每日计数
+		    if (visitData.lastVisitDate !== today) {
+		        visitData.lastVisitDate = today;
+		        visitData.dailyCount = 0;
 		    }
 		    
-		    // 计数器动画函数 - 新增代码
-		    function animateCounter(element) {
-		        element.classList.remove('counter-up');
-		        void element.offsetWidth; // 触发重排
-		        element.classList.add('counter-up');
-		    }
+		    // 增加计数
+		    visitData.dailyCount++;
+		    visitData.totalCount++;
 		    
-		    // 初始化
-		    document.addEventListener('DOMContentLoaded', function() {
-		        createStars();
-		        window.scrollTo(0, 0);
-		        
+		    // 保存更新后的数据
+		    localStorage.setItem('visitData', JSON.stringify(visitData));
+		    
+		    // 更新显示
+		    document.getElementById('dailyVisits').textContent = visitData.dailyCount;
+		    document.getElementById('footerDailyVisits').textContent = visitData.dailyCount;
+		    document.getElementById('totalVisits').textContent = visitData.totalCount;
+		    
+		    // 添加动画效果
+		    animateCounter(document.getElementById('dailyVisits'));
+		    animateCounter(document.getElementById('totalVisits'));
+		}
+		
+		// 计数器动画函数
+		function animateCounter(element) {
+		    element.classList.remove('counter-up');
+		    void element.offsetWidth; // 触发重排
+		    element.classList.add('counter-up');
+		}
+		
+		// 在页面加载时调用
+		document.addEventListener('DOMContentLoaded', function() {
+			document.addEventListener('DOMContentLoaded', function() {
+			    createStars();
+			    
+			    // 页面加载时滚动到顶部
+			    window.scrollTo(0, 0);
+			});
 		        // 更新访问量计数 - 新增代码
 		        updateVisitCounter();
 		    });
