@@ -3,7 +3,7 @@ const users = JSON.parse(localStorage.getItem('users')) || [];
 let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
 // 管理员邮箱列表
-const ADMIN_EMAILS = ["2138820937@qq.com"];
+const ADMIN_EMAILS = ["2138820937@qq.com", "mingyang49570@outlook.com", "2934741099@qq.com", "nnpghm_2025@qq.com","2403691529@qq.com"];
 
 // DOM元素
 const authButtons = document.getElementById('authButtons');
