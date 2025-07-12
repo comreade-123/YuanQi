@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人中心 - 元启天星工作室</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="js/auth.js" defer></script>
+    <style>
+        .profile-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            padding: 40px;
+            margin: 40px 0;
+            max-width: 800px;
+            margin: 40px auto;
+        }
+        
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+        }
+        
+        .change-avatar-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .user-info-card {
+            background: var(--gray);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .info-item {
+            display: flex;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray-dark);
+        }
+        
+        .info-label {
+            width: 120px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .info-value {
+            flex: 1;
+            color: var(--text);
+        }
+        
+        .admin-panel {
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+        
+        .danger-zone {
+            border: 1px solid var(--error);
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 40px;
+        }
+        
+        .danger-zone h3 {
+            color: var(--error);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo-container">
+                    <img src="images/logo.png" alt="元启天星工作室LOGO" class="logo-img">
+                    <div class="logo-text">元启天星工作室</div>
+                </a>
+                
+                <ul class="nav-links">
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="index.html#logo-intro">LOGO介绍</a></li>
+                    <li><a href="index.html#team">人员介绍</a></li>
+                    <li><a href="index.html#about">工作室介绍</a></li>
+                    <li><a href="projects.html">项目</a></li>
+                </ul>
+                
+                <div class="auth-buttons" id="authButtons">
+                    <a href="#" class="auth-btn login-btn" id="loginBtn">登录</a>
+                    <a href="#" class="auth-btn register-btn" id="registerBtn">注册</a>
+                </div>
+                
+                <div class="user-info" id="userInfo" style="display:none;">
+                    <a href="profile.html" id="usernameDisplay"></a>
+                    <button class="logout-btn" id="logoutBtn">退出</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="profile-container">
+            <div class="profile-header">
+                <div class="avatar-container">
+                    <img id="userAvatar" class="profile-avatar" src="" alt="用户头像">
+                    <div class="change-avatar-btn" id="changeAvatarBtn">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                </div>
+                <h1 id="profileUsername">个人中心</h1>
+            </div>
+            
+            <div class="user-info-card">
+                <div class="info-item">
+                    <div class="info-label">用户名</div>
+                    <div class="info-value" id="infoUsername"></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">电子邮箱</div>
+                    <div class="info-value" id="infoEmail"></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">注册日期</div>
+                    <div class="info-value" id="infoJoinDate"></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">用户类型</div>
+                    <div class="info-value" id="infoUserType"></div>
+                </div>
+            </div>
+            
+            <!-- 管理员面板 -->
+            <div class="admin-panel" id="adminPanel" style="display:none;">
+                <h3><i class="fas fa-crown"></i> 管理员功能</h3>
+                <button class="btn" id="createArticleBtn">发布新文章</button>
+                <div id="articleForm" style="display:none; margin-top:20px;">
+                    <div class="form-group">
+                        <label class="form-label">文章标题</label>
+                        <input type="text" class="form-input" id="articleTitle">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">文章内容</label>
+                        <textarea class="form-input" id="articleContent" rows="10"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">发布日期</label>
+                        <input type="date" class="form-input" id="articleDate">
+                    </div>
+                    <button class="submit-btn-block" id="publishArticleBtn">发布文章</button>
+                </div>
+                
+                <h3 style="margin-top:30px;">管理现有文章</h3>
+                <div id="articleList" class="article-list">
+                    <!-- 文章列表将通过JavaScript加载 -->
+                </div>
+            </div>
+            
+            <!-- 危险区域 -->
+            <div class="danger-zone">
+                <h3><i class="fas fa-exclamation-triangle"></i> 危险区域</h3>
+                <button class="logout-btn" id="deleteAccountBtn">注销账号</button>
+                <p style="margin-top:15px; color:var(--text-light);">
+                    注意：注销账号将永久删除您的所有数据，包括评论和个人信息，此操作不可恢复。
+                </p>
+            </div>
+        </div>
+    </main>
+    
+    <!-- 头像修改模态框 -->
+    <div class="modal" id="avatarModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">修改头像</h3>
+                <button class="close-btn" id="closeAvatarModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="status-message" id="avatarStatus"></div>
+                <div class="avatar-form">
+                    <img id="newAvatarPreview" src="" class="avatar-preview">
+                    <input type="file" id="newAvatarUpload" accept="image/*" style="display: none;">
+                    <button type="button" id="uploadNewAvatarBtn" class="btn">上传新头像</button>
+                    <div class="form-group" style="margin-top:15px;">
+                        <label class="form-label">或输入头像URL</label>
+                        <input type="text" class="form-input" id="newAvatarUrl" placeholder="输入头像图片URL">
+                    </div>
+                </div>
+                <button class="submit-btn-block" id="saveAvatarBtn">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>元启天星工作室</h3>
+                    <p>探索数字宇宙的无限可能，创造卓越的数字体验。</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-weixin"></i></a>
+                    	<a href="https://space.bilibili.com/3461575411238984"><i class="fab fa-bilibili"></i></a>
+                        <a href="https://github.com/comreade-123"><i class="fab fa-github"></i></a>
+                    	<a href="egg/egg.html"><i class="fa fa-wheelchair-alt"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>联系方式</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 河北省唐山市丰南区</p>
+                    <p><i class="fas fa-phone"></i> +86 195 0325 5106</p>
+                    <p><i class="fas fa-envelope"></i> 2138820937@qq.com</p>
+                </div>
+            </div>
+            
+            <div align="copyright">
+                <img src="images/logo3.png" width="150" height="75">
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2025 元启天星工作室 版权所有 | 备案号</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 从URL获取用户ID参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('userId');
+            
+            let targetUser = null;
+            
+            // 如果指定了用户ID，显示该用户信息
+            if (userId) {
+                const users = JSON.parse(localStorage.getItem('users')) || [];
+                targetUser = users.find(u => u.id === userId);
+            }
+            
+            // 如果未指定用户ID或未找到用户，显示当前登录用户
+            if (!targetUser) {
+                targetUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+            }
+            
+            // 如果用户未登录，重定向到登录页
+            if (!targetUser) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // 更新用户信息显示
+            document.getElementById('userAvatar').src = currentUser.avatarUrl || 'https://www.gravatar.com/avatar/000?d=mp';
+            document.getElementById('profileUsername').textContent = currentUser.username;
+            document.getElementById('infoUsername').textContent = currentUser.username;
+            document.getElementById('infoEmail').textContent = currentUser.email;
+            document.getElementById('infoJoinDate').textContent = currentUser.joinDate || '未知日期';
+            document.getElementById('infoUserType').textContent = currentUser.isAdmin ? '管理员' : '普通用户';
+            
+            // 如果是管理员，显示管理员面板
+            if (currentUser.isAdmin) {
+                document.getElementById('adminPanel').style.display = 'block';
+                loadArticles();
+            }
+            
+            // 修改头像按钮
+            document.getElementById('changeAvatarBtn').addEventListener('click', function() {
+                document.getElementById('avatarModal').style.display = 'flex';
+                document.getElementById('newAvatarPreview').src = currentUser.avatarUrl || 'https://www.gravatar.com/avatar/000?d=mp';
+            });
+            
+            // 上传新头像按钮
+            document.getElementById('uploadNewAvatarBtn').addEventListener('click', function() {
+                document.getElementById('newAvatarUpload').click();
+            });
+            
+            // 头像文件选择事件
+            document.getElementById('newAvatarUpload').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        document.getElementById('newAvatarPreview').src = event.target.result;
+                        document.getElementById('newAvatarUrl').value = event.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // 保存头像按钮
+            document.getElementById('saveAvatarBtn').addEventListener('click', function() {
+                const newAvatarUrl = document.getElementById('newAvatarUrl').value.trim() || 
+                                    document.getElementById('newAvatarPreview').src;
+                
+                if (!newAvatarUrl) {
+                    showStatus(document.getElementById('avatarStatus'), '请上传或输入头像URL', false);
+                    return;
+                }
+                
+                // 更新当前用户头像
+                currentUser.avatarUrl = newAvatarUrl;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                
+                // 更新用户列表中的头像
+                const users = JSON.parse(localStorage.getItem('users')) || [];
+                const userIndex = users.findIndex(u => u.id === currentUser.id);
+                if (userIndex !== -1) {
+                    users[userIndex].avatarUrl = newAvatarUrl;
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+                
+                // 更新UI
+                document.getElementById('userAvatar').src = newAvatarUrl;
+                
+                // 关闭模态框
+                document.getElementById('avatarModal').style.display = 'none';
+                
+                showStatus(document.getElementById('avatarStatus'), '头像更新成功！', true);
+            });
+            
+            // 注销账号按钮
+            document.getElementById('deleteAccountBtn').addEventListener('click', function() {
+                if (confirm('确定要永久删除您的账号吗？此操作不可恢复！')) {
+                    // 从用户列表中删除
+                    const users = JSON.parse(localStorage.getItem('users')) || [];
+                    const updatedUsers = users.filter(user => user.id !== currentUser.id);
+                    localStorage.setItem('users', JSON.stringify(updatedUsers));
+                    
+                    // 清除当前用户
+                    localStorage.removeItem('currentUser');
+                    
+                    // 重定向到首页
+                    window.location.href = 'index.html';
+                }
+            });
+            
+            // 管理员功能：显示文章表单
+            document.getElementById('createArticleBtn').addEventListener('click', function() {
+                const form = document.getElementById('articleForm');
+                form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            });
+            
+            // 管理员功能：发布文章
+            document.getElementById('publishArticleBtn').addEventListener('click', function() {
+                const title = document.getElementById('articleTitle').value.trim();
+                const content = document.getElementById('articleContent').value.trim();
+                const date = document.getElementById('articleDate').value || new Date().toISOString().split('T')[0];
+                
+                if (!title || !content) {
+                    alert('请填写标题和内容');
+                    return;
+                }
+                
+                // 创建文章对象
+                const newArticle = {
+                    id: 'article' + Date.now(),
+                    title: title,
+                    content: content,
+                    date: date,
+                    author: currentUser.username,
+                    authorId: currentUser.id,
+                    summary: content.substring(0, 100) + '...' // 生成摘要
+                };
+                
+                // 保存到本地存储
+                const articles = JSON.parse(localStorage.getItem('articles')) || [];
+                articles.push(newArticle);
+                localStorage.setItem('articles', JSON.stringify(articles));
+                
+                // 清空表单
+                document.getElementById('articleTitle').value = '';
+                document.getElementById('articleContent').value = '';
+                
+                // 重新加载文章列表
+                loadArticles();
+                
+                alert('文章发布成功！');
+            });
+            
+            // 关闭头像模态框
+            document.getElementById('closeAvatarModal').addEventListener('click', function() {
+                document.getElementById('avatarModal').style.display = 'none';
+            });
+            
+            // 显示状态消息的函数
+            function showStatus(element, message, isSuccess) {
+                element.textContent = message;
+                element.className = isSuccess ? 'status-message success' : 'status-message error';
+                element.style.display = 'block';
+                
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, 3000);
+            }
+            
+            // 加载文章列表
+            function loadArticles() {
+                const articleList = document.getElementById('articleList');
+                const articles = JSON.parse(localStorage.getItem('articles')) || [];
+                
+                if (articles.length === 0) {
+                    articleList.innerHTML = '<p>暂无文章</p>';
+                    return;
+                }
+                
+                articleList.innerHTML = '';
+                
+                articles.forEach(article => {
+                    const articleElement = document.createElement('div');
+                    articleElement.className = 'article-item';
+                    articleElement.innerHTML = `
+                        <div class="article-header">
+                            <h4>${article.title}</h4>
+                            <span>${article.date}</span>
+                        </div>
+                        <p class="article-summary">${article.summary}</p>
+                        <div class="article-actions">
+                            <a href="articles/article.html?id=${article.id}" class="edit-btn">查看</a>
+                            <button class="delete-btn" data-id="${article.id}">删除</button>
+                        </div>
+                    `;
+                    articleList.appendChild(articleElement);
+                });
+                
+                // 添加删除事件监听
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const articleId = this.dataset.id;
+                        if (confirm('确定要删除这篇文章吗？')) {
+                            deleteArticle(articleId);
+                        }
+                    });
+                });
+            }
+            
+            // 删除文章
+            function deleteArticle(articleId) {
+                const articles = JSON.parse(localStorage.getItem('articles')) || [];
+                const updatedArticles = articles.filter(article => article.id !== articleId);
+                localStorage.setItem('articles', JSON.stringify(updatedArticles));
+                loadArticles(); // 重新加载文章列表
+            }
+        });
+    </script>
+</body>
+</html>

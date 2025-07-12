@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章详情 - 元启天星工作室</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 从URL获取文章ID
+            const urlParams = new URLSearchParams(window.location.search);
+            const articleId = urlParams.get('id');
+            
+            // 从本地存储加载文章
+            const articles = JSON.parse(localStorage.getItem('articles')) || [];
+            const article = articles.find(a => a.id === articleId);
+            
+            if (article) {
+                // 更新页面内容
+                document.title = article.title + ' - 元启天星工作室';
+                document.getElementById('articleTitle').textContent = article.title;
+                document.getElementById('articleDate').textContent = article.date;
+                document.getElementById('articleAuthor').textContent = article.author;
+                document.getElementById('articleContent').innerHTML = article.content;
+            } else {
+                document.getElementById('articleTitle').textContent = '文章未找到';
+                document.getElementById('articleContent').innerHTML = '<p>抱歉，该文章不存在或已被删除。</p>';
+            }
+        });
+    </script>
+    <style>
+        .profile-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            padding: 40px;
+            margin: 40px 0;
+            max-width: 800px;
+            margin: 40px auto;
+        }
+        
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+        }
+        
+        .change-avatar-btn {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .user-info-card {
+            background: var(--gray);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .info-item {
+            display: flex;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray-dark);
+        }
+        
+        .info-label {
+            width: 120px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .info-value {
+            flex: 1;
+            color: var(--text);
+        }
+        
+        .admin-panel {
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+        
+        .danger-zone {
+            border: 1px solid var(--error);
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 40px;
+        }
+        
+        .danger-zone h3 {
+            color: var(--error);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="../index.html" class="logo-container">
+                    <img src="../images/logo.png" alt="元启天星工作室LOGO" class="logo-img">
+                    <div class="logo-text">元启天星工作室</div>
+                </a>
+                
+                <ul class="nav-links">
+                    <li><a href="../index.html">首页</a></li>
+                    <li><a href="../index.html#logo-intro">LOGO介绍</a></li>
+                    <li><a href="../index.html#team">人员介绍</a></li>
+                    <li><a href="../index.html#about">工作室介绍</a></li>
+                    <li><a href="../projects.html">项目</a></li>
+                </ul>
+                
+                <div class="auth-buttons" id="authButtons">
+                    <a href="#" class="auth-btn login-btn" id="loginBtn">登录</a>
+                    <a href="#" class="auth-btn register-btn" id="registerBtn">注册</a>
+                </div>
+                
+                <div class="user-info" id="userInfo" style="display:none;">
+                    <a href="../profile.html" id="usernameDisplay"></a>
+                    <button class="logout-btn" id="logoutBtn">退出</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+    
+    <main class="container">
+        <a href="../projects.html" class="back-to-projects">&larr; 返回项目列表</a>
+        
+        <div class="page-header">
+            <h1 id="articleTitle">文章标题</h1>
+            <div class="article-meta">
+                <span>发布时间: <span id="articleDate"></span></span>
+                <span>作者: <span id="articleAuthor"></span></span>
+            </div>
+        </div>
+        
+        <div class="article-container">
+            <div class="article-content" id="articleContent">
+                <!-- 文章内容将通过JavaScript加载 -->
+            </div>
+        </div>
+        
+        <!-- 评论区域 -->
+        <div class="comments-section">
+            <h3>评论 <span id="commentsCount">0</span></h3>
+            
+            <div class="comment-form">
+                <textarea class="comment-input" id="commentInput" placeholder="写下你的评论..."></textarea>
+                <button class="submit-btn" id="commentSubmit">发表评论</button>
+            </div>
+            
+            <div class="comments-list" id="commentsList">
+                <!-- 评论将通过JavaScript加载 -->
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <!-- 页脚内容 -->
+    </footer>
+</body>
+</html>

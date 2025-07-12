@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+     <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>项目中心 - 元启天星工作室</title>
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+        <script src="js/auth.js" defer></script>
+        <script src="js/main.js" defer></script>
+		<script>
+		    document.addEventListener('DOMContentLoaded', function() {
+		        // 显示管理员操作按钮
+		        const adminActions = document.getElementById('adminActions');
+		        if (currentUser && currentUser.isAdmin) {
+		            adminActions.style.display = 'block';
+		        }
+		        
+		        // 加载项目/文章
+		        loadProjects();
+		    });
+		    
+		    function loadProjects() {
+		        const projectsGrid = document.getElementById('projectsGrid');
+		        projectsGrid.innerHTML = '';
+		        
+		        // 从本地存储加载文章
+		        const articles = JSON.parse(localStorage.getItem('articles')) || [];
+		        
+		        // 按日期排序（最新的在前）
+		        articles.sort((a, b) => new Date(b.date) - new Date(a.date));
+		        
+		        // 添加文章到项目列表
+		        articles.forEach(article => {
+		            const projectCard = document.createElement('div');
+		            projectCard.className = 'project-card';
+		            projectCard.innerHTML = `
+		                <div class="project-header">
+		                    <h2>${article.title}</h2>
+		                </div>
+		                <span class="project-date">${article.date}</span>
+		                <div class="project-summary">
+		                    <p>${article.summary}</p>
+		                </div>
+		                <a href="articles/article.html?id=${article.id}" class="read-more-btn">阅读全文</a>
+		            `;
+		            projectsGrid.appendChild(projectCard);
+		        });
+		    }
+			
+			// 加载管理员列表
+			function loadAdminList() {
+			    const adminList = document.getElementById('adminList');
+			    if (!adminList) return;
+			    
+			    // 从本地存储获取用户和文章
+			    const users = JSON.parse(localStorage.getItem('users')) || [];
+			    const articles = JSON.parse(localStorage.getItem('articles')) || [];
+			    
+			    // 筛选管理员
+			    const admins = users.filter(user => user.isAdmin);
+			    
+			    // 如果没有管理员，显示提示
+			    if (admins.length === 0) {
+			        adminList.innerHTML = '<p class="no-admins">暂无管理员</p>';
+			        return;
+			    }
+			    
+			    adminList.innerHTML = ''; // 清空容器
+			    
+			    admins.forEach(admin => {
+			        // 查找该管理员发布的文章
+			        const adminArticles = articles.filter(article => article.authorId === admin.id);
+			        
+			        // 创建管理员卡片
+			        const adminCard = document.createElement('div');
+			        adminCard.className = 'admin-card';
+			        adminCard.innerHTML = `
+			            <div class="admin-header">
+			                <img src="${admin.avatarUrl || 'https://www.gravatar.com/avatar/000?d=mp'}" 
+			                     alt="${admin.username}" class="admin-avatar">
+			                <div>
+			                    <div class="admin-name">${admin.username}</div>
+			                    <div class="admin-email">${admin.email}</div>
+			                    <div class="admin-type">管理员</div>
+			                </div>
+			            </div>
+			            <div class="admin-articles">
+			                <h4>发布的文章 (${adminArticles.length})</h4>
+			                ${adminArticles.length > 0 
+			                    ? adminArticles.map(article => `
+			                        <div class="article-item">
+			                            <i class="fas fa-file-alt article-icon"></i>
+			                            <div class="article-title">${article.title}</div>
+			                        </div>
+			                    `).join('') 
+			                    : '<p>暂无发布文章</p>'}
+			            </div>
+			        `;
+			        
+			        // 点击卡片跳转到管理员个人中心
+			        adminCard.addEventListener('click', () => {
+			            window.location.href = `profile.html?userId=${admin.id}`;
+			        });
+			        
+			        adminList.appendChild(adminCard);
+			    });
+			}
+			
+			// 在DOMContentLoaded事件中调用
+			document.addEventListener('DOMContentLoaded', function() {
+			    // ... 其他代码
+			    
+			    // 加载管理员列表
+			    loadAdminList();
+			});
+		</script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo-container">
+                    <img src="images/logo.png" alt="元启天星工作室LOGO" class="logo-img">
+                    <div class="logo-text">元启天星工作室</div>
+                </a>
+                
+                <ul class="nav-links">
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="index.html#logo-intro">LOGO介绍</a></li>
+                    <li><a href="index.html#team">人员介绍</a></li>
+                    <li><a href="index.html#about">工作室介绍</a></li>
+                    <li><a href="projects.html">项目</a></li>
+                </ul>
+                
+                <div class="auth-buttons" id="authButtons">
+                    <a href="#" class="auth-btn login-btn" id="loginBtn">登录</a>
+                    <a href="#" class="auth-btn register-btn" id="registerBtn">注册</a>
+                </div>
+                
+                <div class="user-info" id="userInfo" style="display:none;">
+                    <a href="profile.html" id="usernameDisplay"></a>
+                        <button class="logout-btn" id="logoutBtn">退出</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+    
+    <main class="container">
+        <h1>项目中心</h1>
+        
+        <div class="projects-grid">
+            <!-- 项目1 -->
+            <div class="project-card">
+                <div class="project-header">
+                    <h2>基于ESP32的物理教学演示仪</h2>
+                </div>
+				<span class="project-date">2023-12-14</span>
+                <div class="project-summary">
+                    <p>基于ESP32-WROOM-32E的初中物理学教学演示仪，提供学校和教师教学演示。</p>
+                </div>
+                <a href="articles/project1.html" class="read-more-btn" data-article="articles/project1.html">阅读全文</a>
+            </div>
+            
+            <!-- 项目2 -->
+            <div class="project-card">
+                <div class="project-header">
+                    <h2>基于ESP32的跟随机械臂</h2>
+                </div>
+                <span class="project-date">2025-03-10</span>
+                <div class="project-summary">
+                    <p>基于ESP32 Maker和MPU6050的跟随机械臂。</p>
+                </div>
+                <a href="articles/project2.html" class="read-more-btn" data-article="articles/project2.html">阅读全文</a>
+            </div>
+            
+            <!-- 项目3 -->
+            <div class="project-card">
+                <div class="project-header">
+                    <h2>新项目</h2>
+                </div>
+				<span class="project-date">2025-07-05</span>
+                <div class="project-summary">
+                    <p>新项目</p>
+                </div>
+                <a href="articles/project3.html" class="read-more-btn" data-article="articles/project3.html">阅读全文</a>
+            </div>
+        </div>
+        
+        <!-- 文章内容区域 -->
+        <div class="article-container" id="articleContainer" style="display:none;">
+            <div class="article-header">
+                <h1 id="articleTitle"></h1>
+                <div class="article-meta">
+                    <span>发布时间: <span id="articleDate"></span></span>
+                    <span>作者: <span id="articleAuthor"></span></span>
+                </div>
+            </div>
+            <div class="article-content" id="articleContent"></div>
+			<!-- 管理员列表 -->
+			<div class="admin-section">
+			    <h2>管理员列表</h2>
+			    <div class="admin-grid" id="adminList">
+			        <!-- 管理员卡片将通过JavaScript加载 -->
+			    </div>
+			</div>
+            
+            <!-- 评论区域 -->
+            <div class="comments-section">
+                <h3>评论 <span id="commentsCount">0</span></h3>
+                
+                <div class="comment-form">
+                    <textarea class="comment-input" id="commentInput" placeholder="写下你的评论..."></textarea>
+                    <button class="submit-btn" id="commentSubmit">发表评论</button>
+                </div>
+                
+                <div class="comments-list" id="commentsList">
+                    <!-- 评论将通过JavaScript加载 -->
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- 登录/注册模态框 -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">用户登录</h3>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="status-message" id="loginStatus"></div>
+                
+                <div class="form-group">
+                    <label class="form-label">用户名或邮箱</label>
+                    <input type="text" class="form-input" id="loginUsername" placeholder="请输入用户名或邮箱">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" id="loginPassword" placeholder="请输入密码">
+                </div>
+                <button class="submit-btn-block" id="loginSubmit">登录</button>
+                <div class="form-footer">
+                    还没有账号? <a href="#" id="switchToRegister">立即注册</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">用户注册</h3>
+                <button class="close-btn" id="closeRegisterModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="status-message" id="registerStatus"></div>
+                
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-input" id="registerUsername" placeholder="请输入用户名">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">电子邮箱</label>
+                    <input type="email" class="form-input" id="registerEmail" placeholder="请输入电子邮箱">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" id="registerPassword" placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">确认密码</label>
+                    <input type="password" class="form-input" id="registerConfirm" placeholder="请再次输入密码">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">头像URL (可选)</label>
+                    <input type="text" class="form-input" id="avatarUrl" placeholder="输入头像图片URL">
+                    <small>或使用默认头像</small>
+                </div>
+                <div class="avatar-form">
+                    <img id="avatarPreview" src="https://www.gravatar.com/avatar/000?d=mp" class="avatar-preview">
+                    <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
+                    <button type="button" id="uploadAvatarBtn">上传头像</button>
+                </div>
+                <button class="submit-btn-block" id="registerSubmit">注册</button>
+                <div class="form-footer">
+                    已有账号? <a href="#" id="switchToLogin">立即登录</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>元启天星工作室</h3>
+                    <p>探索数字宇宙的无限可能，创造卓越的数字体验。</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-weixin"></i></a>
+                    	<a href="https://space.bilibili.com/3461575411238984"><i class="fab fa-bilibili"></i></a>
+                        <a href="https://github.com/comreade-123"><i class="fab fa-github"></i></a>
+                    	<a href="egg/egg.html"><i class="fa fa-wheelchair-alt"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>联系方式</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 河北省唐山市丰南区</p>
+                    <p><i class="fas fa-phone"></i> +86 195 0325 5106</p>
+                    <p><i class="fas fa-envelope"></i> 2138820937@qq.com</p>
+                </div>
+            </div>
+            
+            <div align="copyright">
+                <img src="images/logo3.png" width="150" height="75">
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2025 元启天星工作室 版权所有 | 备案号</p>
+            </div>
+        </div>
+    </footer>
+	<!-- 修改头像模态框 -->
+	<div class="modal" id="avatarModal">
+	    <div class="modal-content">
+	        <div class="modal-header">
+	            <h3 class="modal-title">修改头像</h3>
+	            <button class="close-btn" id="closeAvatarModal">&times;</button>
+	        </div>
+	        <div class="modal-body">
+	            <div class="status-message" id="avatarStatus"></div>
+	            <div class="avatar-form">
+	                <img id="newAvatarPreview" src="https://www.gravatar.com/avatar/000?d=mp" class="avatar-preview">
+	                <input type="file" id="newAvatarUpload" accept="image/*" style="display: none;">
+	                <button type="button" id="uploadNewAvatarBtn">上传新头像</button>
+	                <div class="form-group">
+	                    <label class="form-label">或输入头像URL</label>
+	                    <input type="text" class="form-input" id="newAvatarUrl" placeholder="输入头像图片URL">
+	                </div>
+	            </div>
+	            <button class="submit-btn-block" id="saveAvatarBtn">保存</button>
+	        </div>
+	    </div>
+	</div>
+</body>
+</html>
